@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚀 Space Flight - Recompensas</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+    body {
+      background: #0a0f1e;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    }
+    .sim-container {
+      background: #141b2b;
+      border-radius: 2rem;
+      padding: 1.5rem 2rem 2rem 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.06);
+      border: 1px solid #2d3a52;
+      position: relative;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: radial-gradient(circle at 20% 30%, #1a2740, #05080f);
+      border-radius: 24px;
+      box-shadow: inset 0 0 60px rgba(0, 20, 60, 0.8);
+      width: 800px;
+      height: 500px;
+      cursor: crosshair;
+      border: 1px solid #3f506e;
+    }
+    .painel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1.2rem;
+      color: #b7d0f0;
+      text-shadow: 0 2px 3px #00000080;
+      flex-wrap: wrap;
+      gap: 1rem 0;
+    }
+    .info-grid {
+      display: flex;
+      gap: 2rem;
+      background: #0f172ae0;
+      padding: 0.6rem 1.6rem;
+      border-radius: 40px;
+      backdrop-filter: blur(2px);
+      border: 1px solid #3b4c6b;
+    }
+    .info-item {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+    .info-item span:first-child {
+      color: #8ea4cf;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+    .info-item span:last-child {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #d6eaff;
+      min-width: 4.5rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .controles {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      background: #1f2c44;
+      border: none;
+      color: #d3e4ff;
+      font-size: 1.3rem;
+      font-weight: 600;
+      padding: 0.4rem 1.2rem;
+      border-radius: 40px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #0a111f, 0 4px 12px #00000080;
+      transition: all 0.08s ease;
+      border: 1px solid #3c5377;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:active {
+      transform: translateY(5px);
+      box-shadow: 0 1px 0 #0a111f;
+    }
+    .btn-destaque {
+      background: #3b5c8a;
+      border-color: #6b92cf;
+      color: white;
+      box-shadow: 0 6px 0 #1d2e4a;
+    }
+    .btn-destaque:active {
+      box-shadow: 0 1px 0 #1d2e4a;
+    }
+    .btn-azul {
+      background: #1b3a6b;
+      border-color: #4b7bc0;
+    }
+    .combustivel-barra {
+      width: 100px;
+      height: 10px;
+      background: #1e2840;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid #3d5277;
+    }
+    .combustivel-preenchido {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #f7b731, #f5a623);
+      border-radius: 20px;
+      transition: width 0.1s linear;
+    }
+    .legenda {
+      font-size: 0.75rem;
+      color: #6d85b0;
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.3rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .legenda kbd {
+      background: #1f2b41;
+      padding: 0.1rem 0.7rem;
+      border-radius: 30px;
+      color: #bdd2f5;
+      border: 1px solid #3c5275;
+    }
+
+    .btn-overlay {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 50px;
+      font-size: 28px;
+      font-weight: 700;
+      border-radius: 60px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 2px;
+      z-index: 10;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      border: 2px solid;
+    }
+    .btn-overlay:hover {
+      transform: translateX(-50%) scale(1.05);
+    }
+    .btn-overlay:active {
+      transform: translateX(-50%) scale(0.95);
+    }
+
+    #btnIniciarOverlay {
+      top: 52%;
+      background: linear-gradient(135deg, #2a8a5a, #1a6a3a);
+      color: white;
+      border-color: #4ad87a;
+      box-shadow: 0 0 40px rgba(74, 216, 122, 0.3), inset 0 2px 0 rgba(255,255,255,0.2);
+      animation: pulsar 2s infinite;
+    }
+    #btnIniciarOverlay:hover {
+      box-shadow: 0 0 60px rgba(74, 216, 122, 0.5);
+    }
+
+    #btnLojaOverlay {
+      top: 68%;
+      padding: 12px 40px;
+      font-size: 20px;
+      background: linear-gradient(135deg, #7a4a2a, #5a3a1a);
+      color: #ffe0b0;
+      border-color: #c07a3a;
+      box-shadow: 0 0 30px rgba(192, 122, 58, 0.2), inset 0 2px 0 rgba(255,255,255,0.1);
+    }
+    #btnLojaOverlay:hover {
+      box-shadow: 0 0 50px rgba(192, 122, 58, 0.4);
+    }
+
+    @keyframes pulsar {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .container-relative {
+      position: relative;
+      display: inline-block;
+    }
+
+    .modal-loja {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(8px);
+    }
+    .modal-loja.active {
+      display: flex;
+    }
+    .modal-content {
+      background: linear-gradient(145deg, #1a2740, #0f172a);
+      border-radius: 30px;
+      padding: 40px 50px;
+      max-width: 500px;
+      width: 90%;
+      border: 2px solid #3a5a7a;
+      box-shadow: 0 0 80px rgba(0, 50, 150, 0.3);
+      position: relative;
+    }
+    .modal-content h2 {
+      color: #d6eaff;
+      font-size: 32px;
+      text-align: center;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 20px rgba(74, 127, 255, 0.3);
+    }
+    .modal-content .moedas {
+      text-align: center;
+      color: #ffd700;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 25px;
+      background: rgba(255, 215, 0, 0.1);
+      padding: 8px;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 215, 0, 0.2);
+    }
+    .upgrade-item {
+      background: #0f1a2e;
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      border: 1px solid #2a3f5a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    .upgrade-item:hover {
+      border-color: #4a7aaa;
+      background: #142238;
+    }
+    .upgrade-info {
+      color: #b7d0f0;
+    }
+    .upgrade-info .nome {
+      font-weight: 700;
+      font-size: 18px;
+      color: #d6eaff;
+    }
+    .upgrade-info .desc {
+      font-size: 13px;
+      color: #8aa0c0;
+      margin-top: 2px;
+    }
+    .upgrade-info .preco {
+      color: #ffd700;
+      font-weight: 600;
+      font-size: 15px;
+      margin-top: 4px;
+    }
+    .upgrade-info .limite {
+      color: #6a8aaa;
+      font-size: 12px;
+    }
+    .btn-upgrade {
+      background: #2a5a3a;
+      border: none;
+      color: white;
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid #4a8a5a;
+      min-width: 80px;
+    }
+    .btn-upgrade:hover:not(:disabled) {
+      background: #3a7a4a;
+      transform: scale(1.05);
+    }
+    .btn-upgrade:disabled {
+      background: #2a2a3a;
+      border-color: #3a3a4a;
+      color: #6a6a7a;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .btn-upgrade.comprando {
+      animation: pulsar 0.5s;
+    }
+    .btn-fechar-loja {
+      background: #3a2a3a;
+      border: 1px solid #6a4a5a;
+      color: #d0b0c0;
+      padding: 10px 30px;
+      border-radius: 40px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 15px;
+      width: 100%;
+      transition: all 0.2s;
+    }
+    .btn-fechar-loja:hover {
+      background: #5a3a4a;
+      border-color: #8a5a6a;
+    }
+    .btn-fechar-loja:active {
+      transform: scale(0.95);
+    }
+    /* Notificação de recompensa */
+    .reward-notification {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: #ffd700;
+      padding: 20px 40px;
+      border-radius: 20px;
+      font-size: 28px;
+      font-weight: 700;
+      border: 2px solid #ffd700;
+      box-shadow: 0 0 60px rgba(255, 215, 0, 0.3);
+      z-index: 2000;
+      text-align: center;
+      pointer-events: none;
+      animation: rewardAnim 2.5s ease-out forwards;
+      text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    }
+    .reward-notification .sub {
+      font-size: 16px;
+      color: #aac0e0;
+      margin-top: 5px;
+      font-weight: 400;
+    }
+    @keyframes rewardAnim {
+      0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+      15% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+      25% { transform: translateX(-50%) scale(1); }
+      75% { opacity: 1; transform: translateX(-50%) scale(1); }
+      100% { opacity: 0; transform: translateX(-50%) scale(1.2) translateY(-30px); }
+    }
+    @media (max-width: 860px) {
+      .sim-container { padding: 1rem; }
+      canvas { width: 100%; height: auto; aspect-ratio: 800/500; }
+      .painel { flex-direction: column; align-items: stretch; gap: 0.8rem; }
+      .info-grid { justify-content: space-around; }
+      #btnIniciarOverlay {
+        font-size: 20px;
+        padding: 12px 30px;
+        top: 50%;
+      }
+      #btnLojaOverlay {
+        font-size: 16px;
+        padding: 10px 25px;
+        top: 66%;
+      }
+      .modal-content { padding: 25px 20px; }
+      .upgrade-item { flex-direction: column; gap: 10px; align-items: stretch; }
+      .btn-upgrade { width: 100%; }
+      .reward-notification {
+        font-size: 20px;
+        padding: 15px 25px;
+        top: 15%;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="sim-container">
+  <div class="container-relative">
+    <canvas id="spaceCanvas" width="800" height="500"></canvas>
+    <button id="btnIniciarOverlay" class="btn-overlay" style="display:none;">🚀 INICIAR</button>
+    <button id="btnLojaOverlay" class="btn-overlay" style="display:none;">🛒 LOJA</button>
+  </div>
+
+  <div class="painel">
+    <div class="info-grid">
+      <div class="info-item"><span>🚀 Altura</span><span id="alturaDisplay">0.0</span></div>
+      <div class="info-item"><span>⛽ Comb.</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span id="combustivelDisplay">100</span>
+          <div class="combustivel-barra"><div class="combustivel-preenchido" id="combustivelBarra" style="width: 100%;"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="controles">
+      <button class="btn btn-destaque" id="btnLigarMotor">🔥 Motor</button>
+      <button class="btn btn-azul" id="btnReset">🔄 Reiniciar</button>
+    </div>
+  </div>
+  <div class="legenda">
+    <span><kbd>Espaço</kbd> ligar/desligar motor</span>
+    <span><kbd>R</kbd> reiniciar</span>
+    <span>⬆️ subir com motor ligado</span>
+    <span>🏆 Recompensa por camada: +10, +20, +30...</span>
+  </div>
+</div>
+
+<!-- Modal da Loja -->
+<div class="modal-loja" id="modalLoja">
+  <div class="modal-content">
+    <h2>🛒 UPGRADES</h2>
+    <div class="moedas">🪙 Moedas: <span id="moedasDisplay">0</span></div>
+    
+    <div class="upgrade-item">
+      <div class="upgrade-info">
+        <div class="nome">⚡ Velocidade Máxima</div>
+        <div class="desc">+10 km/h por nível</div>
+        <div class="preco">💰 <span id="precoVelocidade">10</span> moedas</div>
+        <div class="limite">Nível: <span id="nivelVelocidade">0</span> | Atual: <span id="velocAtual">190</span> km/h</div>
+      </div>
+      <button class="btn-upgrade" id="btnUpgradeVelocidade">COMPRAR</button>
+    </div>
+
+    <div class="upgrade-item">
+      <div class="upgrade-info">
+        <div class="nome">⏱️ Duração do Combustível</div>
+        <div class="desc">+1 segundo por nível (máx. 10)</div>
+        <div class="preco">💰 <span id="precoDuracao">20</span> moedas</div>
+        <div class="limite">Nível: <span id="nivelDuracao">0</span>/10 | Atual: <span id="duracaoAtual">5</span>s</div>
+      </div>
+      <button class="btn-upgrade" id="btnUpgradeDuracao">COMPRAR</button>
+    </div>
+
+    <button class="btn-fechar-loja" id="btnFecharLoja">✕ FECHAR</button>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // --- Elementos ---
+    const canvas = document.getElementById('spaceCanvas');
+    const ctx = canvas.getContext('2d');
+    const alturaSpan = document.getElementById('alturaDisplay');
+    const combustivelSpan = document.getElementById('combustivelDisplay');
+    const combustivelBarra = document.getElementById('combustivelBarra');
+    const btnIniciar = document.getElementById('btnIniciarOverlay');
+    const btnLoja = document.getElementById('btnLojaOverlay');
+    const modalLoja = document.getElementById('modalLoja');
+    const btnFecharLoja = document.getElementById('btnFecharLoja');
+    const moedasDisplay = document.getElementById('moedasDisplay');
+    const precoVelocidade = document.getElementById('precoVelocidade');
+    const precoDuracao = document.getElementById('precoDuracao');
+    const nivelVelocidade = document.getElementById('nivelVelocidade');
+    const nivelDuracao = document.getElementById('nivelDuracao');
+    const velocAtual = document.getElementById('velocAtual');
+    const duracaoAtual = document.getElementById('duracaoAtual');
+    const btnUpgradeVelocidade = document.getElementById('btnUpgradeVelocidade');
+    const btnUpgradeDuracao = document.getElementById('btnUpgradeDuracao');
+
+    // --- Dimensões e constantes ---
+    const CANVAS_W = 800;
+    const CANVAS_H = 500;
+    const SOLO_Y = 450;
+    const ALTURA_MAX_TELA = 430;
+
+    // --- Configurações iniciais do foguete ---
+    const CONFIG = {
+      velocidadeBase: 190,
+      duracaoBase: 5,
+      combustivelMaximo: 100,
+      gravidade: 45,
+      empuxo: 100,
+      velocidadeQuedaMaxima: 300,
+    };
+
+    // --- Estado do jogador (upgrades) ---
+    const player = {
+      moedas: 0,
+      nivelVelocidade: 0,
+      nivelDuracao: 0,
+      precoBaseVelocidade: 10,
+      precoBaseDuracao: 20,
+      maxDuracao: 10,
+    };
+
+    // --- Estado do simulador ---
+    const state = {
+      alturaMundo: 0,
+      velocidade: 0,
+      combustivel: CONFIG.combustivelMaximo,
+      motorLigado: false,
+      chaoVisivel: true,
+      camadaAtual: 0,
+      offsetY: 0,
+      jogoIniciado: false,
+      velocidadeMaxima: CONFIG.velocidadeBase,
+      duracaoCombustivel: CONFIG.duracaoBase,
+    };
+
+    // --- Controles de tempo ---
+    let ultimoTimestamp = 0;
+    let animFrameId = null;
+
+    // --- Sistema de Recompensas por Camada ---
+    let ultimaCamadaRecompensada = -1;
+    let rewardTimeout = null;
+
+    function verificarRecompensaCamada() {
+      const camadaAtual = Math.floor(state.alturaMundo / ALTURA_MAX_TELA);
+      
+      if (camadaAtual > ultimaCamadaRecompensada && state.jogoIniciado) {
+        const recompensa = (camadaAtual + 1) * 10;
+        player.moedas += recompensa;
+        ultimaCamadaRecompensada = camadaAtual;
+        
+        mostrarNotificacaoRecompensa(recompensa, camadaAtual);
+        atualizarInterfaceLoja();
+      }
+    }
+
+    function mostrarNotificacaoRecompensa(recompensa, camada) {
+      const oldNotif = document.querySelector('.reward-notification');
+      if (oldNotif) oldNotif.remove();
+      
+      const notif = document.createElement('div');
+      notif.className = 'reward-notification';
+      notif.innerHTML = `
+        🏆 +${recompensa} Moedas!
+        <div class="sub">Camada ${camada + 1} ultrapassada!</div>
+      `;
+      document.body.appendChild(notif);
+      
+      if (rewardTimeout) clearTimeout(rewardTimeout);
+      rewardTimeout = setTimeout(() => {
+        if (notif.parentNode) notif.remove();
+      }, 2500);
+    }
+
+    // --- Funções auxiliares ---
+    function resetarSimulador() {
+      state.alturaMundo = 0;
+      state.velocidade = 0;
+      state.combustivel = CONFIG.combustivelMaximo;
+      state.motorLigado = false;
+      state.chaoVisivel = true;
+      state.camadaAtual = 0;
+      state.offsetY = 0;
+      state.jogoIniciado = false;
+      
+      state.velocidadeMaxima = CONFIG.velocidadeBase + (player.nivelVelocidade * 10);
+      state.duracaoCombustivel = CONFIG.duracaoBase + player.nivelDuracao;
+      
+      ultimaCamadaRecompensada = -1;
+      
+      btnIniciar.style.display = 'block';
+      btnLoja.style.display = 'block';
+      atualizarDisplay();
+      atualizarInterfaceLoja();
+    }
+
+    function iniciarJogo() {
+      state.jogoIniciado = true;
+      btnIniciar.style.display = 'none';
+      btnLoja.style.display = 'none';
+      ultimaCamadaRecompensada = -1;
+      verificarRecompensaCamada();
+    }
+
+    function atualizarDisplay() {
+      alturaSpan.textContent = state.alturaMundo.toFixed(1);
+      const comb = Math.max(0, Math.min(100, state.combustivel));
+      combustivelSpan.textContent = Math.floor(comb);
+      combustivelBarra.style.width = comb + '%';
+    }
+
+    function atualizarInterfaceLoja() {
+      moedasDisplay.textContent = player.moedas;
+      
+      const precoV = player.precoBaseVelocidade + (player.nivelVelocidade * 2);
+      precoVelocidade.textContent = precoV;
+      nivelVelocidade.textContent = player.nivelVelocidade;
+      velocAtual.textContent = CONFIG.velocidadeBase + (player.nivelVelocidade * 10);
+      
+      const precoD = player.precoBaseDuracao + (player.nivelDuracao * 3);
+      precoDuracao.textContent = precoD;
+      nivelDuracao.textContent = player.nivelDuracao;
+      duracaoAtual.textContent = CONFIG.duracaoBase + player.nivelDuracao;
+      
+      btnUpgradeVelocidade.disabled = (player.moedas < precoV);
+      btnUpgradeDuracao.disabled = (player.moedas < precoD || player.nivelDuracao >= player.maxDuracao);
+      
+      if (player.nivelDuracao >= player.maxDuracao) {
+        btnUpgradeDuracao.textContent = '✅ MAX';
+        btnUpgradeDuracao.disabled = true;
+      } else {
+        btnUpgradeDuracao.textContent = 'COMPRAR';
+      }
+    }
+
+    // --- Lógica da camada e do chão ---
+    function atualizarCamadaEChao() {
+      const novaCamada = Math.floor(state.alturaMundo / ALTURA_MAX_TELA);
+      
+      if (novaCamada !== state.camadaAtual) {
+        state.camadaAtual = novaCamada;
+        if (state.camadaAtual >= 1) {
+          state.chaoVisivel = false;
+        }
+        verificarRecompensaCamada();
+      }
+      
+      if (state.alturaMundo < ALTURA_MAX_TELA && state.camadaAtual === 0) {
+        state.chaoVisivel = true;
+      }
+      
+      if (state.camadaAtual === 0) {
+        state.chaoVisivel = true;
+      }
+    }
+
+    // --- Física ---
+    function stepPhysics(deltaSec) {
+      if (deltaSec > 0.05) deltaSec = 0.05;
+
+      const duracaoTotal = state.duracaoCombustivel;
+      const consumoPorSegundo = CONFIG.combustivelMaximo / duracaoTotal;
+
+      const motorFuncionando = state.motorLigado && state.combustivel > 0;
+      
+      let aceleracao = -CONFIG.gravidade;
+      
+      if (motorFuncionando) {
+        aceleracao += CONFIG.empuxo;
+        const consumoTotal = consumoPorSegundo * deltaSec;
+        state.combustivel = Math.max(0, state.combustivel - consumoTotal);
+        if (state.combustivel <= 0) {
+          state.combustivel = 0;
+          state.motorLigado = false;
+        }
+      }
+
+      state.velocidade += aceleracao * deltaSec;
+
+      if (motorFuncionando && state.velocidade > 0) {
+        const limitePx = state.velocidadeMaxima * 0.2778;
+        if (state.velocidade > limitePx) {
+          state.velocidade = limitePx;
+        }
+      }
+      
+      if (state.velocidade < 0) {
+        const limiteQueda = CONFIG.velocidadeQuedaMaxima;
+        if (state.velocidade < -limiteQueda) {
+          state.velocidade = -limiteQueda;
+        }
+      }
+
+      let novaAltura = state.alturaMundo + state.velocidade * deltaSec;
+
+      if (novaAltura < 0) {
+        novaAltura = 0;
+        state.velocidade = 0;
+      }
+
+      state.alturaMundo = novaAltura;
+      state.offsetY = -state.alturaMundo * 0.3;
+
+      if (state.combustivel <= 0) {
+        state.motorLigado = false;
+      }
+
+      atualizarCamadaEChao();
+      atualizarDisplay();
+    }
+
+    // --- Posição da nave na tela ---
+    function getNaveY() {
+      const mundoVisivel = ALTURA_MAX_TELA;
+      let relY = state.alturaMundo % mundoVisivel;
+      let naveY = SOLO_Y - relY;
+      return naveY;
+    }
+
+    // --- Desenho da cena ---
+    function desenharCena() {
+      ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+
+      ctx.fillStyle = '#0a111f';
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+      
+      ctx.fillStyle = '#f0f8ff';
+      for (let i = 0; i < 60; i++) {
+        const x = (i * 37 + 13) % CANVAS_W;
+        const y = ((i * 23 + 7) + state.offsetY * 0.3) % CANVAS_H;
+        ctx.globalAlpha = 0.3 + Math.sin(i * 0.7) * 0.2;
+        ctx.beginPath();
+        ctx.arc(x, y, 0.6 + (i % 2), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      ctx.fillStyle = '#ddeeff';
+      for (let i = 0; i < 40; i++) {
+        const x = (i * 53 + 29) % CANVAS_W;
+        const y = ((i * 41 + 17) + state.offsetY * 0.6) % CANVAS_H;
+        ctx.globalAlpha = 0.5 + Math.cos(i * 0.5) * 0.3;
+        ctx.beginPath();
+        ctx.arc(x, y, 1.0 + (i % 3), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      ctx.fillStyle = '#ffffff';
+      for (let i = 0; i < 25; i++) {
+        const x = (i * 67 + 41) % CANVAS_W;
+        const y = ((i * 53 + 31) + state.offsetY * 1.0) % CANVAS_H;
+        ctx.globalAlpha = 0.6 + Math.sin(i * 0.9) * 0.4;
+        ctx.beginPath();
+        ctx.arc(x, y, 1.5 + (i % 4) * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1.0;
+
+      const planetaY = 120 + state.offsetY * 0.15;
+      ctx.shadowColor = '#9bb7e0';
+      ctx.shadowBlur = 30;
+      ctx.beginPath();
+      ctx.arc(680, planetaY, 45, 0, Math.PI * 2);
+      ctx.fillStyle = '#3a4c6b';
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#5b75a0';
+      ctx.beginPath();
+      ctx.arc(660, planetaY - 20, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#4a6188';
+      ctx.beginPath();
+      ctx.arc(700, planetaY + 15, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 0.08;
+      for (let i = 0; i < 5; i++) {
+        const nx = 100 + i * 150 + Math.sin(i * 0.5) * 30;
+        const ny = ((i * 80 + 30) + state.offsetY * 0.2) % (CANVAS_H + 100) - 50;
+        const grad = ctx.createRadialGradient(nx, ny, 10, nx, ny, 80 + i * 20);
+        grad.addColorStop(0, '#7a9bcb');
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(nx, ny, 80 + i * 20, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1.0;
+
+      if (state.chaoVisivel) {
+        const soloY = SOLO_Y;
+        
+        function desenharSolo(yBase) {
+          ctx.fillStyle = '#192433';
+          ctx.fillRect(0, yBase, CANVAS_W, 50);
+          ctx.fillStyle = '#2d405b';
+          ctx.fillRect(0, yBase - 2, CANVAS_W, 4);
+          for (let i = 0; i < 20; i++) {
+            ctx.fillStyle = '#304a6b';
+            ctx.beginPath();
+            ctx.arc(40 + i * 40, yBase + 6 + (i % 5) * 3, 6, 0, Math.PI);
+            ctx.fill();
+          }
+          ctx.fillStyle = '#1f3450';
+          for (let i = 0; i < 12; i++) {
+            ctx.beginPath();
+            ctx.arc(20 + i * 70, yBase + 20 + (i * 3) % 15, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        desenharSolo(soloY);
+      }
+
+      const naveY = getNaveY();
+      const naveX = 400;
+
+      if (state.motorLigado && state.combustivel > 0) {
+        ctx.shadowColor = '#ffaa33';
+        ctx.shadowBlur = 40;
+        const grad = ctx.createRadialGradient(naveX, naveY + 24, 4, naveX, naveY + 40, 30);
+        grad.addColorStop(0, '#ffb347');
+        grad.addColorStop(0.5, '#ff7b00');
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.ellipse(naveX, naveY + 28, 14, 28, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 60;
+        ctx.fillStyle = '#ffdd77';
+        ctx.beginPath();
+        ctx.ellipse(naveX, naveY + 30, 6, 16, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      } else {
+        ctx.shadowBlur = 0;
+      }
+
+      ctx.shadowColor = '#8ab3ff';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#cfdef5';
+      ctx.beginPath();
+      ctx.ellipse(naveX, naveY, 18, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#b0c7e8';
+      ctx.beginPath();
+      ctx.ellipse(naveX - 4, naveY - 4, 10, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#7fc0ff';
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+      ctx.ellipse(naveX - 2, naveY - 10, 8, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#d9edff';
+      ctx.beginPath();
+      ctx.arc(naveX - 6, naveY - 14, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#e8f0fa';
+      ctx.shadowBlur = 6;
+      ctx.fillRect(naveX - 14, naveY - 2, 28, 4);
+      ctx.fillStyle = '#b8cef0';
+      ctx.fillRect(naveX - 8, naveY - 20, 16, 3);
+      ctx.fillStyle = '#9bb4dd';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.ellipse(naveX - 24, naveY + 6, 8, 5, 0.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(naveX + 24, naveY + 6, 8, 5, -0.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      if (!state.jogoIniciado) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        
+        ctx.shadowColor = '#4a7fff';
+        ctx.shadowBlur = 40;
+        ctx.textAlign = 'center';
+        
+        ctx.font = 'bold 56px "Segoe UI", "Arial", sans-serif';
+        ctx.fillStyle = '#b8d8ff';
+        ctx.fillText('🚀 SPACE FLIGHT', 400, 150);
+        
+        ctx.shadowBlur = 20;
+        ctx.font = '20px "Segoe UI", "Arial", sans-serif';
+        ctx.fillStyle = '#8ab0e0';
+        ctx.fillText('Explore o espaço infinito!', 400, 195);
+        
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'left';
+      }
+
+      if (state.jogoIniciado) {
+        ctx.font = 'bold 12px "Segoe UI", monospace';
+        ctx.fillStyle = state.motorLigado && state.combustivel > 0 ? '#b3ff9b' : '#ff8a8a';
+        ctx.fillText(state.motorLigado && state.combustivel > 0 ? '🔥 MOTOR ON' : '⛔ MOTOR OFF', 20, 40);
+        
+        ctx.fillStyle = state.chaoVisivel ? '#88dd88' : '#ff6644';
+        ctx.font = 'bold 13px "Segoe UI"';
+        ctx.fillText(`Chão: ${state.chaoVisivel ? '✅' : '❌'}`, 20, 70);
+
+        ctx.fillStyle = '#b8d0f0';
+        ctx.font = '14px "Segoe UI"';
+        ctx.fillText(`🌌 Camada ${state.camadaAtual + 1}`, 20, 100);
+        
+        ctx.fillStyle = '#aac0e0';
+        ctx.font = '12px "Segoe UI"';
+        ctx.fillText(`⚡ Limite: ${state.velocidadeMaxima} km/h`, 20, 125);
+        ctx.fillText(`⏱️ Duração: ${state.duracaoCombustivel}s`, 20, 145);
+        
+        const proxRecompensa = (state.camadaAtual + 1) * 10;
+        ctx.fillStyle = '#ffd700';
+        ctx.font = '12px "Segoe UI"';
+        ctx.fillText(`🏆 Próxima camada: +${proxRecompensa} moedas`, 20, 170);
+        
+        if (state.combustivel <= 0) {
+          ctx.fillStyle = '#ffaa44';
+          ctx.font = 'bold 18px "Segoe UI"';
+          ctx.textAlign = 'center';
+          ctx.fillText('⛽ COMBUSTÍVEL ESGOTADO', 400, 200);
+          ctx.textAlign = 'left';
+        }
+
+        if (state.alturaMundo < 1.5 && state.velocidade === 0 && state.chaoVisivel) {
+          ctx.fillStyle = '#b8d0f0';
+          ctx.font = 'italic 16px "Segoe UI"';
+          ctx.textAlign = 'center';
+          ctx.fillText('🛸 Pronto para decolagem!', 400, 470);
+          ctx.textAlign = 'left';
+        }
+      }
+    }
+
+    // --- Loop principal ---
+    function loop(timestamp) {
+      if (!ultimoTimestamp) ultimoTimestamp = timestamp;
+      const deltaMs = timestamp - ultimoTimestamp;
+      ultimoTimestamp = timestamp;
+      const deltaSec = Math.min(deltaMs / 1000, 0.05);
+
+      stepPhysics(deltaSec);
+      
+      if (state.jogoIniciado) {
+        verificarRecompensaCamada();
+      }
+      
+      desenharCena();
+
+      animFrameId = requestAnimationFrame(loop);
+    }
+
+    // --- Controles ---
+    function toggleMotor() {
+      if (!state.jogoIniciado) return;
+      
+      if (state.combustivel <= 0) {
+        state.motorLigado = false;
+        return;
+      }
+      state.motorLigado = !state.motorLigado;
+    }
+
+    // --- Funções da Loja ---
+    function comprarVelocidade() {
+      const preco = player.precoBaseVelocidade + (player.nivelVelocidade * 2);
+      if (player.moedas >= preco) {
+        player.moedas -= preco;
+        player.nivelVelocidade++;
+        state.velocidadeMaxima = CONFIG.velocidadeBase + (player.nivelVelocidade * 10);
+        atualizarInterfaceLoja();
+        btnUpgradeVelocidade.classList.add('comprando');
+        setTimeout(() => btnUpgradeVelocidade.classList.remove('comprando'), 300);
+      }
+    }
+
+    function comprarDuracao() {
+      const preco = player.precoBaseDuracao + (player.nivelDuracao * 3);
+      if (player.moedas >= preco && player.nivelDuracao < player.maxDuracao) {
+        player.moedas -= preco;
+        player.nivelDuracao++;
+        state.duracaoCombustivel = CONFIG.duracaoBase + player.nivelDuracao;
+        atualizarInterfaceLoja();
+        btnUpgradeDuracao.classList.add('comprando');
+        setTimeout(() => btnUpgradeDuracao.classList.remove('comprando'), 300);
+      }
+    }
+
+    function abrirLoja() {
+      modalLoja.classList.add('active');
+      atualizarInterfaceLoja();
+    }
+
+    function fecharLoja() {
+      modalLoja.classList.remove('active');
+    }
+
+    // --- Event Listeners ---
+    document.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Space') {
+        e.preventDefault();
+        toggleMotor();
+      }
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        resetarSimulador();
+      }
+      if (e.key === 'Escape' && modalLoja.classList.contains('active')) {
+        fecharLoja();
+      }
+    });
+
+    document.getElementById('btnLigarMotor').addEventListener('click', toggleMotor);
+    document.getElementById('btnReset').addEventListener('click', resetarSimulador);
+    btnIniciar.addEventListener('click', iniciarJogo);
+    btnLoja.addEventListener('click', abrirLoja);
+    btnFecharLoja.addEventListener('click', fecharLoja);
+    btnUpgradeVelocidade.addEventListener('click', comprarVelocidade);
+    btnUpgradeDuracao.addEventListener('click', comprarDuracao);
+
+    modalLoja.addEventListener('click', (e) => {
+      if (e.target === modalLoja) fecharLoja();
+    });
+
+    // --- Inicialização ---
+    resetarSimulador();
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+    ultimoTimestamp = 0;
+    animFrameId = requestAnimationFrame(loop);
+  })();
+</script>
+</body>
+</html>
