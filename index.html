@@ -483,10 +483,22 @@
     const minhaNave = new NavePersonalizada();
     minhaNave.carregarNave('principal'); // Carrega a nave da pasta assets
 
+    // --- Instância do novo chão (Lua) ---
+    const chaoLua = new Image();
+    chaoLua.src = 'assets/chao_lua.png';
+    let chaoCarregado = false;
+    chaoLua.onload = function() {
+        chaoCarregado = true;
+        console.log("🌕 Imagem do chão (Lua) carregada!");
+    };
+    chaoLua.onerror = function() {
+        console.error("❌ Erro ao carregar chao_lua.png. Verifique se está na pasta assets/");
+    };
+
     // --- Dimensões e constantes ---
     const CANVAS_W = 800;
     const CANVAS_H = 500;
-    const SOLO_Y = 450;
+    const SOLO_Y = 430; // Ajustado para ficar melhor com a imagem da lua
     const ALTURA_MAX_TELA = 430;
 
     // --- Configurações iniciais do foguete ---
@@ -710,10 +722,11 @@
       return naveY;
     }
 
-    // --- Desenho da cena (Atualizado para usar a imagem) ---
+    // --- Desenho da cena ---
     function desenharCena() {
       ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
 
+      // Fundo Espacial
       ctx.fillStyle = '#0a111f';
       ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
       
@@ -748,6 +761,7 @@
       }
       ctx.globalAlpha = 1.0;
 
+      // Planeta ao fundo
       const planetaY = 120 + state.offsetY * 0.15;
       ctx.shadowColor = '#9bb7e0';
       ctx.shadowBlur = 30;
@@ -765,6 +779,7 @@
       ctx.arc(700, planetaY + 15, 7, 0, Math.PI * 2);
       ctx.fill();
 
+      // Nebulosas decorativas
       ctx.shadowBlur = 0;
       ctx.globalAlpha = 0.08;
       for (let i = 0; i < 5; i++) {
@@ -780,30 +795,21 @@
       }
       ctx.globalAlpha = 1.0;
 
+      // --- DESENHO DO CHÃO (SUBSTITUÍDO PELA IMAGEM) ---
       if (state.chaoVisivel) {
-        const soloY = SOLO_Y;
-        
-        function desenharSolo(yBase) {
-          ctx.fillStyle = '#192433';
-          ctx.fillRect(0, yBase, CANVAS_W, 50);
-          ctx.fillStyle = '#2d405b';
-          ctx.fillRect(0, yBase - 2, CANVAS_W, 4);
-          for (let i = 0; i < 20; i++) {
-            ctx.fillStyle = '#304a6b';
-            ctx.beginPath();
-            ctx.arc(40 + i * 40, yBase + 6 + (i % 5) * 3, 6, 0, Math.PI);
-            ctx.fill();
-          }
-          ctx.fillStyle = '#1f3450';
-          for (let i = 0; i < 12; i++) {
-            ctx.beginPath();
-            ctx.arc(20 + i * 70, yBase + 20 + (i * 3) % 15, 4, 0, Math.PI * 2);
-            ctx.fill();
-          }
+        if (chaoCarregado) {
+            // Desenha a imagem centralizada no eixo X, ancorada no SOLO_Y
+            // Ajuste a largura e altura de acordo com o tamanho da sua imagem
+            const larguraChao = 800; 
+            const alturaChao = 140; // Ajuste para cobrir a parte inferior
+            ctx.drawImage(chaoLua, 0, SOLO_Y - 70, larguraChao, alturaChao);
+        } else {
+            // Fallback caso a imagem não carregue (desenha um chão escuro simples)
+            ctx.fillStyle = '#192433';
+            ctx.fillRect(0, SOLO_Y, CANVAS_W, 70);
         }
-
-        desenharSolo(soloY);
       }
+      // --- FIM DO DESENHO DO CHÃO ---
 
       // --- NOVA LÓGICA DA NAVE ---
       const naveX = 400;
