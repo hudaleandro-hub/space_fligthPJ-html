@@ -76,46 +76,6 @@
       min-width: 4.5rem;
       font-variant-numeric: tabular-nums;
     }
-    .controles {
-      display: flex;
-      gap: 0.8rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .btn {
-      background: #1f2c44;
-      border: none;
-      color: #d3e4ff;
-      font-size: 1.3rem;
-      font-weight: 600;
-      padding: 0.4rem 1.2rem;
-      border-radius: 40px;
-      cursor: pointer;
-      box-shadow: 0 6px 0 #0a111f, 0 4px 12px #00000080;
-      transition: all 0.08s ease;
-      border: 1px solid #3c5377;
-      letter-spacing: 0.5px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn:active {
-      transform: translateY(5px);
-      box-shadow: 0 1px 0 #0a111f;
-    }
-    .btn-destaque {
-      background: #3b5c8a;
-      border-color: #6b92cf;
-      color: white;
-      box-shadow: 0 6px 0 #1d2e4a;
-    }
-    .btn-destaque:active {
-      box-shadow: 0 1px 0 #1d2e4a;
-    }
-    .btn-azul {
-      background: #1b3a6b;
-      border-color: #4b7bc0;
-    }
     .combustivel-barra {
       width: 100px;
       height: 10px;
@@ -396,23 +356,19 @@
 <div class="sim-container">
   <div class="container-relative">
     <canvas id="spaceCanvas" width="800" height="500"></canvas>
-    <button id="btnIniciarOverlay" class="btn-overlay" style="display:none;">🚀 INICIAR</button>
-    <button id="btnLojaOverlay" class="btn-overlay" style="display:none;">🛒 LOJA</button>
+    <button id="btnIniciarOverlay" class="btn-overlay" style="display:none;">INICIAR</button>
+    <button id="btnLojaOverlay" class="btn-overlay" style="display:none;">LOJA</button>
   </div>
 
   <div class="painel">
     <div class="info-grid">
-      <div class="info-item"><span>🚀 Altura</span><span id="alturaDisplay">0.0</span></div>
-      <div class="info-item"><span>⛽ Comb.</span>
+      <div class="info-item"><span>Altura</span><span id="alturaDisplay">0.0</span></div>
+      <div class="info-item"><span>Comb.</span>
         <div style="display: flex; align-items: center; gap: 8px;">
           <span id="combustivelDisplay">100</span>
           <div class="combustivel-barra"><div class="combustivel-preenchido" id="combustivelBarra" style="width: 100%;"></div></div>
         </div>
       </div>
-    </div>
-    <div class="controles">
-      <button class="btn btn-destaque" id="btnLigarMotor">🔥 Motor</button>
-      <button class="btn btn-azul" id="btnReset">🔄 Reiniciar</button>
     </div>
   </div>
   <div class="legenda">
@@ -453,10 +409,11 @@
   </div>
 </div>
 
-<!-- Carregue a lógica da nova nave (deve estar na mesma pasta) -->
+<!-- Carregue as classes externas -->
 <script src="nave.js"></script>
+<script src="Ambient.js"></script>
 
-<!-- Script Principal Atualizado -->
+<!-- Script Principal com Som do Motor -->
 <script>
   (function() {
     // --- Elementos ---
@@ -479,9 +436,17 @@
     const btnUpgradeVelocidade = document.getElementById('btnUpgradeVelocidade');
     const btnUpgradeDuracao = document.getElementById('btnUpgradeDuracao');
 
+    // --- SOM DO MOTOR (Instância Única) ---
+    const somMotor = new Audio('assets/motor.mp3');
+    somMotor.loop = true;    // Toca em loop infinito
+    somMotor.volume = 0.3;   // Volume mais baixo (30%) para não estourar
+
+    // --- Instância do Ambiente (Fundo Espacial) ---
+    const ambiente = new Ambient();
+
     // --- Instância da nova nave ---
     const minhaNave = new NavePersonalizada();
-    minhaNave.carregarNave('principal'); // Carrega a nave da pasta assets
+    minhaNave.carregarNave('principal');
 
     // --- Instância do novo chão (Lua) ---
     const chaoLua = new Image();
@@ -495,10 +460,22 @@
         console.error("❌ Erro ao carregar chao_lua.png. Verifique se está na pasta assets/");
     };
 
+    // --- Imagem do Título ---
+    const imgTitulo = new Image();
+    imgTitulo.src = 'assets/modelos/titulo.png';
+    let tituloCarregado = false;
+    imgTitulo.onload = function() {
+        tituloCarregado = true;
+        console.log("🖼️ Imagem do título carregada!");
+    };
+    imgTitulo.onerror = function() {
+        console.error("❌ Erro ao carregar o título. Verifique se está na pasta assets/modelos/");
+    };
+
     // --- Dimensões e constantes ---
     const CANVAS_W = 800;
     const CANVAS_H = 500;
-    const SOLO_Y = 430; // Ajustado para ficar melhor com a imagem da lua
+    const SOLO_Y = 430; 
     const ALTURA_MAX_TELA = 430;
 
     // --- Configurações iniciais do foguete ---
@@ -580,6 +557,10 @@
       state.velocidade = 0;
       state.combustivel = CONFIG.combustivelMaximo;
       state.motorLigado = false;
+      // Para o som do motor ao reiniciar o jogo
+      somMotor.pause();
+      somMotor.currentTime = 0;
+      
       state.chaoVisivel = true;
       state.camadaAtual = 0;
       state.offsetY = 0;
@@ -590,7 +571,6 @@
       
       ultimaCamadaRecompensada = -1;
 
-      // Recarrega a imagem da nave no reset
       minhaNave.carregarNave('principal');
       
       btnIniciar.style.display = 'block';
@@ -677,6 +657,9 @@
         if (state.combustivel <= 0) {
           state.combustivel = 0;
           state.motorLigado = false;
+          // Para o som do motor se o combustível acabar
+          somMotor.pause();
+          somMotor.currentTime = 0;
         }
       }
 
@@ -726,120 +709,27 @@
     function desenharCena() {
       ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
 
-      // Fundo Espacial
-      ctx.fillStyle = '#0a111f';
-      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-      
-      ctx.fillStyle = '#f0f8ff';
-      for (let i = 0; i < 60; i++) {
-        const x = (i * 37 + 13) % CANVAS_W;
-        const y = ((i * 23 + 7) + state.offsetY * 0.3) % CANVAS_H;
-        ctx.globalAlpha = 0.3 + Math.sin(i * 0.7) * 0.2;
-        ctx.beginPath();
-        ctx.arc(x, y, 0.6 + (i % 2), 0, Math.PI * 2);
-        ctx.fill();
-      }
-      
-      ctx.fillStyle = '#ddeeff';
-      for (let i = 0; i < 40; i++) {
-        const x = (i * 53 + 29) % CANVAS_W;
-        const y = ((i * 41 + 17) + state.offsetY * 0.6) % CANVAS_H;
-        ctx.globalAlpha = 0.5 + Math.cos(i * 0.5) * 0.3;
-        ctx.beginPath();
-        ctx.arc(x, y, 1.0 + (i % 3), 0, Math.PI * 2);
-        ctx.fill();
-      }
-      
-      ctx.fillStyle = '#ffffff';
-      for (let i = 0; i < 25; i++) {
-        const x = (i * 67 + 41) % CANVAS_W;
-        const y = ((i * 53 + 31) + state.offsetY * 1.0) % CANVAS_H;
-        ctx.globalAlpha = 0.6 + Math.sin(i * 0.9) * 0.4;
-        ctx.beginPath();
-        ctx.arc(x, y, 1.5 + (i % 4) * 0.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1.0;
+      // 1. Fundo Espacial
+      ambiente.desenhar(ctx, CANVAS_W, CANVAS_H, state.offsetY);
 
-      // Planeta ao fundo
-      const planetaY = 120 + state.offsetY * 0.15;
-      ctx.shadowColor = '#9bb7e0';
-      ctx.shadowBlur = 30;
-      ctx.beginPath();
-      ctx.arc(680, planetaY, 45, 0, Math.PI * 2);
-      ctx.fillStyle = '#3a4c6b';
-      ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = '#5b75a0';
-      ctx.beginPath();
-      ctx.arc(660, planetaY - 20, 10, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#4a6188';
-      ctx.beginPath();
-      ctx.arc(700, planetaY + 15, 7, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Nebulosas decorativas
-      ctx.shadowBlur = 0;
-      ctx.globalAlpha = 0.08;
-      for (let i = 0; i < 5; i++) {
-        const nx = 100 + i * 150 + Math.sin(i * 0.5) * 30;
-        const ny = ((i * 80 + 30) + state.offsetY * 0.2) % (CANVAS_H + 100) - 50;
-        const grad = ctx.createRadialGradient(nx, ny, 10, nx, ny, 80 + i * 20);
-        grad.addColorStop(0, '#7a9bcb');
-        grad.addColorStop(1, 'transparent');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(nx, ny, 80 + i * 20, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1.0;
-
-      // --- DESENHO DO CHÃO (SUBSTITUÍDO PELA IMAGEM) ---
+      // 2. Desenho do Chão
       if (state.chaoVisivel) {
         if (chaoCarregado) {
-            // Desenha a imagem centralizada no eixo X, ancorada no SOLO_Y
-            // Ajuste a largura e altura de acordo com o tamanho da sua imagem
             const larguraChao = 800; 
-            const alturaChao = 140; // Ajuste para cobrir a parte inferior
+            const alturaChao = 140; 
             ctx.drawImage(chaoLua, 0, SOLO_Y - 70, larguraChao, alturaChao);
         } else {
-            // Fallback caso a imagem não carregue (desenha um chão escuro simples)
             ctx.fillStyle = '#192433';
             ctx.fillRect(0, SOLO_Y, CANVAS_W, 70);
         }
       }
-      // --- FIM DO DESENHO DO CHÃO ---
 
-      // --- NOVA LÓGICA DA NAVE ---
+      // 3. Desenho da Nave
       const naveX = 400;
       const naveY = getNaveY();
-
-      // Chama o método da classe NavePersonalizada para desenhar a imagem + o fogo
       minhaNave.desenhar(ctx, naveX, naveY, state.motorLigado, state.combustivel);
-      // --- FIM DA NOVA LÓGICA ---
 
-      if (!state.jogoIniciado) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
-        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-        
-        ctx.shadowColor = '#4a7fff';
-        ctx.shadowBlur = 40;
-        ctx.textAlign = 'center';
-        
-        ctx.font = 'bold 56px "Segoe UI", "Arial", sans-serif';
-        ctx.fillStyle = '#b8d8ff';
-        ctx.fillText('🚀 SPACE FLIGHT', 400, 150);
-        
-        ctx.shadowBlur = 20;
-        ctx.font = '20px "Segoe UI", "Arial", sans-serif';
-        ctx.fillStyle = '#8ab0e0';
-        ctx.fillText('Explore o espaço infinito!', 400, 195);
-        
-        ctx.shadowBlur = 0;
-        ctx.textAlign = 'left';
-      }
-
+      // 4. HUD (Sempre acima do chão e da nave)
       if (state.jogoIniciado) {
         ctx.font = 'bold 12px "Segoe UI", monospace';
         ctx.fillStyle = state.motorLigado && state.combustivel > 0 ? '#b3ff9b' : '#ff8a8a';
@@ -867,7 +757,7 @@
           ctx.fillStyle = '#ffaa44';
           ctx.font = 'bold 18px "Segoe UI"';
           ctx.textAlign = 'center';
-          ctx.fillText('⛽ COMBUSTÍVEL ESGOTADO', 400, 200);
+          ctx.fillText('COMBUSTÍVEL ESGOTADO', 400, 200);
           ctx.textAlign = 'left';
         }
 
@@ -877,6 +767,41 @@
           ctx.textAlign = 'center';
           ctx.fillText('🛸 Pronto para decolagem!', 400, 470);
           ctx.textAlign = 'left';
+        }
+      }
+
+      // 5. Menu (Sobreposição)
+      if (!state.jogoIniciado) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        
+        // --- Título em imagem ---
+        if (tituloCarregado) {
+            const proporcao = imgTitulo.naturalWidth / imgTitulo.naturalHeight;
+            const alturaMaxima = 140; 
+            const larguraMaxima = 700; 
+
+            let larguraTitulo = alturaMaxima * proporcao;
+            let alturaTitulo = alturaMaxima;
+
+            if (larguraTitulo > larguraMaxima) {
+                larguraTitulo = larguraMaxima;
+                alturaTitulo = larguraMaxima / proporcao;
+            }
+
+            const xTitulo = (CANVAS_W - larguraTitulo) / 2;
+            const yTitulo = 70; 
+
+            ctx.drawImage(imgTitulo, xTitulo, yTitulo, larguraTitulo, alturaTitulo);
+        } else {
+            ctx.shadowColor = '#4a7fff';
+            ctx.shadowBlur = 40;
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 56px "Segoe UI", "Arial", sans-serif';
+            ctx.fillStyle = '#b8d8ff';
+            ctx.fillText('🚀 SPACE FLIGHT', 400, 150);
+            ctx.shadowBlur = 0;
+            ctx.textAlign = 'left';
         }
       }
     }
@@ -905,9 +830,23 @@
       
       if (state.combustivel <= 0) {
         state.motorLigado = false;
+        somMotor.pause(); // Para o som se acabar o combustível
+        somMotor.currentTime = 0;
         return;
       }
+      
       state.motorLigado = !state.motorLigado;
+      
+      if (state.motorLigado) {
+        // Toca o som do motor
+        somMotor.currentTime = 0; // Começa do início
+        somMotor.play().catch(e => {
+            // Ignora o erro de interação. O usuário já clicou em iniciar, então o som vai funcionar.
+        });
+      } else {
+        // Pausa o som do motor
+        somMotor.pause();
+      }
     }
 
     // --- Funções da Loja ---
@@ -959,8 +898,6 @@
       }
     });
 
-    document.getElementById('btnLigarMotor').addEventListener('click', toggleMotor);
-    document.getElementById('btnReset').addEventListener('click', resetarSimulador);
     btnIniciar.addEventListener('click', iniciarJogo);
     btnLoja.addEventListener('click', abrirLoja);
     btnFecharLoja.addEventListener('click', fecharLoja);
