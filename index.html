@@ -151,8 +151,21 @@
       border-color: #c07a3a;
       box-shadow: 0 0 30px rgba(192, 122, 58, 0.2), inset 0 2px 0 rgba(255,255,255,0.1);
     }
-    #btnLojaOverlay:hover {
-      box-shadow: 0 0 50px rgba(192, 122, 58, 0.4);
+
+    /* BOTÃO DO FIM DE JOGO */
+    #btnEncerrarOverlay {
+      display: none;
+      top: 58%;
+      padding: 15px 50px;
+      font-size: 24px;
+      background: linear-gradient(135deg, #8a1a1a, #5a0a0a);
+      color: white;
+      border-color: #d04a4a;
+      box-shadow: 0 0 40px rgba(208, 74, 74, 0.4), inset 0 2px 0 rgba(255,255,255,0.2);
+      animation: pulsar 2s infinite;
+    }
+    #btnEncerrarOverlay:hover {
+      box-shadow: 0 0 60px rgba(208, 74, 74, 0.6);
     }
 
     @keyframes pulsar {
@@ -341,6 +354,11 @@
         padding: 10px 25px;
         top: 66%;
       }
+      #btnEncerrarOverlay {
+        font-size: 18px;
+        padding: 12px 25px;
+        top: 56%;
+      }
       .modal-content { padding: 25px 20px; }
       .upgrade-item { flex-direction: column; gap: 10px; align-items: stretch; }
       .btn-upgrade { width: 100%; }
@@ -356,14 +374,18 @@
 <div class="sim-container">
   <div class="container-relative">
     <canvas id="spaceCanvas" width="800" height="500"></canvas>
-    <button id="btnIniciarOverlay" class="btn-overlay" style="display:none;">INICIAR</button>
-    <button id="btnLojaOverlay" class="btn-overlay" style="display:none;">LOJA</button>
+    
+    <button id="btnIniciarOverlay" class="btn-overlay" style="display:none;">🚀 INICIAR</button>
+    <button id="btnLojaOverlay" class="btn-overlay" style="display:none;">🛒 LOJA</button>
+    
+    <!-- BOTÃO DE ENCERRAR (APARECE APENAS NA CAMADA 10) -->
+    <button id="btnEncerrarOverlay" class="btn-overlay">🏁 ENCERRAR</button>
   </div>
 
   <div class="painel">
     <div class="info-grid">
-      <div class="info-item"><span>Altura</span><span id="alturaDisplay">0.0</span></div>
-      <div class="info-item"><span>Comb.</span>
+      <div class="info-item"><span>🚀 Altura</span><span id="alturaDisplay">0.0</span></div>
+      <div class="info-item"><span>⛽ Comb.</span>
         <div style="display: flex; align-items: center; gap: 8px;">
           <span id="combustivelDisplay">100</span>
           <div class="combustivel-barra"><div class="combustivel-preenchido" id="combustivelBarra" style="width: 100%;"></div></div>
@@ -412,8 +434,13 @@
 <!-- Carregue as classes externas -->
 <script src="nave.js"></script>
 <script src="Ambient.js"></script>
+<script src="somSistema.js"></script>
+<script src="somRecompensa.js"></script>
+<script src="somLoja.js"></script>
+<script src="somAlerta.js"></script>
+<script src="reboot.js"></script>
 
-<!-- Script Principal com Som do Motor -->
+<!-- Script Principal Corrigido (Início no nível 0) -->
 <script>
   (function() {
     // --- Elementos ---
@@ -424,6 +451,7 @@
     const combustivelBarra = document.getElementById('combustivelBarra');
     const btnIniciar = document.getElementById('btnIniciarOverlay');
     const btnLoja = document.getElementById('btnLojaOverlay');
+    const btnEncerrar = document.getElementById('btnEncerrarOverlay');
     const modalLoja = document.getElementById('modalLoja');
     const btnFecharLoja = document.getElementById('btnFecharLoja');
     const moedasDisplay = document.getElementById('moedasDisplay');
@@ -436,10 +464,16 @@
     const btnUpgradeVelocidade = document.getElementById('btnUpgradeVelocidade');
     const btnUpgradeDuracao = document.getElementById('btnUpgradeDuracao');
 
-    // --- SOM DO MOTOR (Instância Única) ---
+    // --- INSTÂNCIAS DE SOM ---
     const somMotor = new Audio('assets/motor.mp3');
-    somMotor.loop = true;    // Toca em loop infinito
-    somMotor.volume = 0.3;   // Volume mais baixo (30%) para não estourar
+    somMotor.loop = true;
+    somMotor.volume = 0.3;
+
+    const somSistema = new SomSistema();
+    const somRecompensa = new SomRecompensa();
+    const somLoja = new SomLoja();
+    const somAlerta = new SomAlerta();
+    const reboot = new Reboot();
 
     // --- Instância do Ambiente (Fundo Espacial) ---
     const ambiente = new Ambient();
@@ -510,6 +544,7 @@
       jogoIniciado: false,
       velocidadeMaxima: CONFIG.velocidadeBase,
       duracaoCombustivel: CONFIG.duracaoBase,
+      jogoFinalizado: false
     };
 
     // --- Controles de tempo ---
@@ -521,6 +556,8 @@
     let rewardTimeout = null;
 
     function verificarRecompensaCamada() {
+      if (state.jogoFinalizado) return;
+
       const camadaAtual = Math.floor(state.alturaMundo / ALTURA_MAX_TELA);
       
       if (camadaAtual > ultimaCamadaRecompensada && state.jogoIniciado) {
@@ -530,10 +567,17 @@
         
         mostrarNotificacaoRecompensa(recompensa, camadaAtual);
         atualizarInterfaceLoja();
+
+        // VERIFICA SE O JOGADOR CHEGOU NA CAMADA 10 (ÍNDICE 9)
+        if (camadaAtual === 9) {
+            finalizarJogo();
+        }
       }
     }
 
     function mostrarNotificacaoRecompensa(recompensa, camada) {
+      somRecompensa.tocar();
+
       const oldNotif = document.querySelector('.reward-notification');
       if (oldNotif) oldNotif.remove();
       
@@ -551,20 +595,41 @@
       }, 2500);
     }
 
+    // --- Função para Finalizar o Jogo ---
+    function finalizarJogo() {
+        state.jogoFinalizado = true;
+        state.motorLigado = false;
+        
+        // Para todos os sons
+        somMotor.pause();
+        somAlerta.desligar();
+        
+        // Mostra a tela escura e o botão Encerrar
+        btnEncerrar.style.display = 'block';
+    }
+
     // --- Funções auxiliares ---
     function resetarSimulador() {
+      reboot.tocar();
+
+      // REMOVI O "430*9" DAQUI. O JOGO AGORA COMEÇA DO ZERO NO CHÃO
       state.alturaMundo = 0;
       state.velocidade = 0;
       state.combustivel = CONFIG.combustivelMaximo;
       state.motorLigado = false;
-      // Para o som do motor ao reiniciar o jogo
+      
       somMotor.pause();
       somMotor.currentTime = 0;
+      somAlerta.desligar();
       
       state.chaoVisivel = true;
       state.camadaAtual = 0;
       state.offsetY = 0;
       state.jogoIniciado = false;
+      state.jogoFinalizado = false; 
+      
+      // Esconde o botão de encerrar
+      btnEncerrar.style.display = 'none';
       
       state.velocidadeMaxima = CONFIG.velocidadeBase + (player.nivelVelocidade * 10);
       state.duracaoCombustivel = CONFIG.duracaoBase + player.nivelDuracao;
@@ -580,6 +645,8 @@
     }
 
     function iniciarJogo() {
+      somSistema.tocarClique();
+
       state.jogoIniciado = true;
       btnIniciar.style.display = 'none';
       btnLoja.style.display = 'none';
@@ -620,6 +687,8 @@
 
     // --- Lógica da camada e do chão ---
     function atualizarCamadaEChao() {
+      if (state.jogoFinalizado) return; 
+
       const novaCamada = Math.floor(state.alturaMundo / ALTURA_MAX_TELA);
       
       if (novaCamada !== state.camadaAtual) {
@@ -641,6 +710,8 @@
 
     // --- Física ---
     function stepPhysics(deltaSec) {
+      if (state.jogoFinalizado) return; 
+
       if (deltaSec > 0.05) deltaSec = 0.05;
 
       const duracaoTotal = state.duracaoCombustivel;
@@ -657,9 +728,10 @@
         if (state.combustivel <= 0) {
           state.combustivel = 0;
           state.motorLigado = false;
-          // Para o som do motor se o combustível acabar
+          
           somMotor.pause();
           somMotor.currentTime = 0;
+          somAlerta.ligar();
         }
       }
 
@@ -729,8 +801,8 @@
       const naveY = getNaveY();
       minhaNave.desenhar(ctx, naveX, naveY, state.motorLigado, state.combustivel);
 
-      // 4. HUD (Sempre acima do chão e da nave)
-      if (state.jogoIniciado) {
+      // 4. HUD
+      if (state.jogoIniciado && !state.jogoFinalizado) {
         ctx.font = 'bold 12px "Segoe UI", monospace';
         ctx.fillStyle = state.motorLigado && state.combustivel > 0 ? '#b3ff9b' : '#ff8a8a';
         ctx.fillText(state.motorLigado && state.combustivel > 0 ? '🔥 MOTOR ON' : '⛔ MOTOR OFF', 20, 40);
@@ -757,7 +829,7 @@
           ctx.fillStyle = '#ffaa44';
           ctx.font = 'bold 18px "Segoe UI"';
           ctx.textAlign = 'center';
-          ctx.fillText('COMBUSTÍVEL ESGOTADO', 400, 200);
+          ctx.fillText('⛽ COMBUSTÍVEL ESGOTADO', 400, 200);
           ctx.textAlign = 'left';
         }
 
@@ -770,12 +842,34 @@
         }
       }
 
-      // 5. Menu (Sobreposição)
+      // 5. Overlay de Fim de Jogo
+      if (state.jogoFinalizado) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)'; 
+        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 40;
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 64px "Segoe UI", "Arial", sans-serif';
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText('🏆 FIM DE JOGO!', 400, 220);
+        ctx.shadowBlur = 0;
+        
+        ctx.font = '24px "Segoe UI", "Arial", sans-serif';
+        ctx.fillStyle = '#d6eaff';
+        ctx.fillText('Você conquistou a Camada 10!', 400, 280);
+        
+        ctx.font = '18px "Segoe UI", "Arial", sans-serif';
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText(`Moedas acumuladas: ${player.moedas} 🪙`, 400, 330);
+        ctx.textAlign = 'left';
+      }
+
+      // 6. Menu (Sobreposição)
       if (!state.jogoIniciado) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
         ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
         
-        // --- Título em imagem ---
         if (tituloCarregado) {
             const proporcao = imgTitulo.naturalWidth / imgTitulo.naturalHeight;
             const alturaMaxima = 140; 
@@ -815,7 +909,7 @@
 
       stepPhysics(deltaSec);
       
-      if (state.jogoIniciado) {
+      if (state.jogoIniciado && !state.jogoFinalizado) {
         verificarRecompensaCamada();
       }
       
@@ -826,11 +920,11 @@
 
     // --- Controles ---
     function toggleMotor() {
-      if (!state.jogoIniciado) return;
+      if (!state.jogoIniciado || state.jogoFinalizado) return;
       
       if (state.combustivel <= 0) {
         state.motorLigado = false;
-        somMotor.pause(); // Para o som se acabar o combustível
+        somMotor.pause();
         somMotor.currentTime = 0;
         return;
       }
@@ -838,13 +932,9 @@
       state.motorLigado = !state.motorLigado;
       
       if (state.motorLigado) {
-        // Toca o som do motor
-        somMotor.currentTime = 0; // Começa do início
-        somMotor.play().catch(e => {
-            // Ignora o erro de interação. O usuário já clicou em iniciar, então o som vai funcionar.
-        });
+        somMotor.currentTime = 0;
+        somMotor.play().catch(e => {});
       } else {
-        // Pausa o som do motor
         somMotor.pause();
       }
     }
@@ -853,6 +943,8 @@
     function comprarVelocidade() {
       const preco = player.precoBaseVelocidade + (player.nivelVelocidade * 2);
       if (player.moedas >= preco) {
+        somLoja.tocar();
+
         player.moedas -= preco;
         player.nivelVelocidade++;
         state.velocidadeMaxima = CONFIG.velocidadeBase + (player.nivelVelocidade * 10);
@@ -865,6 +957,8 @@
     function comprarDuracao() {
       const preco = player.precoBaseDuracao + (player.nivelDuracao * 3);
       if (player.moedas >= preco && player.nivelDuracao < player.maxDuracao) {
+        somLoja.tocar();
+
         player.moedas -= preco;
         player.nivelDuracao++;
         state.duracaoCombustivel = CONFIG.duracaoBase + player.nivelDuracao;
@@ -875,6 +969,9 @@
     }
 
     function abrirLoja() {
+      if (state.jogoFinalizado) return;
+      somSistema.tocarClique();
+
       modalLoja.classList.add('active');
       atualizarInterfaceLoja();
     }
@@ -900,6 +997,7 @@
 
     btnIniciar.addEventListener('click', iniciarJogo);
     btnLoja.addEventListener('click', abrirLoja);
+    btnEncerrar.addEventListener('click', resetarSimulador); // Encerrar volta para o Menu
     btnFecharLoja.addEventListener('click', fecharLoja);
     btnUpgradeVelocidade.addEventListener('click', comprarVelocidade);
     btnUpgradeDuracao.addEventListener('click', comprarDuracao);
