@@ -129,29 +129,29 @@
     .btn-overlay:active {
       transform: translateX(-50%) scale(0.95);
     }
-
     #btnIniciarOverlay {
       top: 52%;
-      background: linear-gradient(135deg, #2a8a5a, #1a6a3a);
-      color: white;
-      border-color: #4ad87a;
-      box-shadow: 0 0 40px rgba(74, 216, 122, 0.3), inset 0 2px 0 rgba(255,255,255,0.2);
+     background: linear-gradient(135deg, #f0f4f8, #c0c8d4);
+      color: #1a1a2e; /* Texto escuro para contrastar com o fundo claro */
+      border-color: #8a8f9a; /* Borda cinza metálica */
+      box-shadow: 0 0 40px rgba(200, 210, 230, 0.3), inset 0 2px 0 rgba(255,255,255,0.8); /* Brilho suave e reflexo */
       animation: pulsar 2s infinite;
     }
     #btnIniciarOverlay:hover {
-      box-shadow: 0 0 60px rgba(74, 216, 122, 0.5);
+      box-shadow: 0 0 60px rgba(200, 210, 230, 0.6); /* Aumenta o brilho ao passar o mouse */
     }
-
     #btnLojaOverlay {
       top: 68%;
       padding: 12px 40px;
       font-size: 20px;
-      background: linear-gradient(135deg, #7a4a2a, #5a3a1a);
-      color: #ffe0b0;
-      border-color: #c07a3a;
-      box-shadow: 0 0 30px rgba(192, 122, 58, 0.2), inset 0 2px 0 rgba(255,255,255,0.1);
+      background: linear-gradient(135deg, #8a7d9e, #5c4d6e); /* Violeta desaturado */
+      color: #e8e0f0; /* Texto lilás bem clarinho para contrastar */
+      border-color: #a895b8; /* Borda violeta clara */
+      box-shadow: 0 0 30px rgba(138, 125, 158, 0.3), inset 0 2px 0 rgba(255,255,255,0.15);
     }
-
+    #btnLojaOverlay:hover {
+      box-shadow: 0 0 50px rgba(138, 125, 158, 0.5); /* Aumenta o brilho ao passar o mouse */
+    }
     /* BOTÃO DO FIM DE JOGO */
     #btnEncerrarOverlay {
       display: none;
@@ -375,8 +375,8 @@
   <div class="container-relative">
     <canvas id="spaceCanvas" width="800" height="500"></canvas>
     
-    <button id="btnIniciarOverlay" class="btn-overlay" style="display:none;">🚀 INICIAR</button>
-    <button id="btnLojaOverlay" class="btn-overlay" style="display:none;">🛒 LOJA</button>
+    <button id="btnIniciarOverlay" class="btn-overlay" style="display:none;">INICIAR</button>
+    <button id="btnLojaOverlay" class="btn-overlay" style="display:none;">LOJA</button>
     
     <!-- BOTÃO DE ENCERRAR (APARECE APENAS NA CAMADA 10) -->
     <button id="btnEncerrarOverlay" class="btn-overlay">🏁 ENCERRAR</button>
@@ -384,8 +384,8 @@
 
   <div class="painel">
     <div class="info-grid">
-      <div class="info-item"><span>🚀 Altura</span><span id="alturaDisplay">0.0</span></div>
-      <div class="info-item"><span>⛽ Comb.</span>
+      <div class="info-item"><span>Altura</span><span id="alturaDisplay">0.0</span></div>
+      <div class="info-item"><span>Comb.</span>
         <div style="display: flex; align-items: center; gap: 8px;">
           <span id="combustivelDisplay">100</span>
           <div class="combustivel-barra"><div class="combustivel-preenchido" id="combustivelBarra" style="width: 100%;"></div></div>
@@ -397,7 +397,7 @@
     <span><kbd>Espaço</kbd> ligar/desligar motor</span>
     <span><kbd>R</kbd> reiniciar</span>
     <span>⬆️ subir com motor ligado</span>
-    <span>🏆 Recompensa por camada: +10, +20, +30...</span>
+    <span> Recompensa por camada: +10, +20, +30...</span>
   </div>
 </div>
 
@@ -807,18 +807,14 @@
         ctx.fillStyle = state.motorLigado && state.combustivel > 0 ? '#b3ff9b' : '#ff8a8a';
         ctx.fillText(state.motorLigado && state.combustivel > 0 ? '🔥 MOTOR ON' : '⛔ MOTOR OFF', 20, 40);
         
-        ctx.fillStyle = state.chaoVisivel ? '#88dd88' : '#ff6644';
-        ctx.font = 'bold 13px "Segoe UI"';
-        ctx.fillText(`Chão: ${state.chaoVisivel ? '✅' : '❌'}`, 20, 70);
-
         ctx.fillStyle = '#b8d0f0';
         ctx.font = '14px "Segoe UI"';
-        ctx.fillText(`🌌 Camada ${state.camadaAtual + 1}`, 20, 100);
+        ctx.fillText(`Camada ${state.camadaAtual + 1}`, 20, 100);
         
         ctx.fillStyle = '#aac0e0';
         ctx.font = '12px "Segoe UI"';
         ctx.fillText(`⚡ Limite: ${state.velocidadeMaxima} km/h`, 20, 125);
-        ctx.fillText(`⏱️ Duração: ${state.duracaoCombustivel}s`, 20, 145);
+        ctx.fillText(`⏱Duração: ${state.duracaoCombustivel}s`, 20, 145);
         
         const proxRecompensa = (state.camadaAtual + 1) * 10;
         ctx.fillStyle = '#ffd700';
@@ -829,7 +825,7 @@
           ctx.fillStyle = '#ffaa44';
           ctx.font = 'bold 18px "Segoe UI"';
           ctx.textAlign = 'center';
-          ctx.fillText('⛽ COMBUSTÍVEL ESGOTADO', 400, 200);
+          ctx.fillText('COMBUSTÍVEL ESGOTADO', 400, 200);
           ctx.textAlign = 'left';
         }
 
@@ -837,7 +833,7 @@
           ctx.fillStyle = '#b8d0f0';
           ctx.font = 'italic 16px "Segoe UI"';
           ctx.textAlign = 'center';
-          ctx.fillText('🛸 Pronto para decolagem!', 400, 470);
+          ctx.fillText('Pronto para decolagem!', 400, 470);
           ctx.textAlign = 'left';
         }
       }
