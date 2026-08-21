@@ -5,6 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🚀 Space Flight - Recompensas</title>
   <style>
+    /* --- SPLASH SCREEN --- */
+    .splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #d3d3d3; /* Cinza claro */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      transition: opacity 0.8s ease-in-out, visibility 0.8s;
+    }
+
+    .splash-logo {
+      width: 300px;
+      height: auto;
+      animation: splashZoom 2s ease-out forwards;
+    }
+
+    @keyframes splashZoom {
+      0% { opacity: 0; transform: scale(0.5); }
+      30% { opacity: 1; transform: scale(1.05); }
+      70% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0.9); }
+    }
+
+    .splash-screen.escondido {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -131,26 +165,26 @@
     }
     #btnIniciarOverlay {
       top: 52%;
-     background: linear-gradient(135deg, #f0f4f8, #c0c8d4);
-      color: #1a1a2e; /* Texto escuro para contrastar com o fundo claro */
-      border-color: #8a8f9a; /* Borda cinza metálica */
-      box-shadow: 0 0 40px rgba(200, 210, 230, 0.3), inset 0 2px 0 rgba(255,255,255,0.8); /* Brilho suave e reflexo */
+      background: linear-gradient(135deg, #f0f4f8, #c0c8d4);
+      color: #1a1a2e;
+      border-color: #8a8f9a;
+      box-shadow: 0 0 40px rgba(200, 210, 230, 0.3), inset 0 2px 0 rgba(255,255,255,0.8);
       animation: pulsar 2s infinite;
     }
     #btnIniciarOverlay:hover {
-      box-shadow: 0 0 60px rgba(200, 210, 230, 0.6); /* Aumenta o brilho ao passar o mouse */
+      box-shadow: 0 0 60px rgba(200, 210, 230, 0.6);
     }
     #btnLojaOverlay {
       top: 68%;
       padding: 12px 40px;
       font-size: 20px;
-      background: linear-gradient(135deg, #8a7d9e, #5c4d6e); /* Violeta desaturado */
-      color: #e8e0f0; /* Texto lilás bem clarinho para contrastar */
-      border-color: #a895b8; /* Borda violeta clara */
+      background: linear-gradient(135deg, #8a7d9e, #5c4d6e);
+      color: #e8e0f0;
+      border-color: #a895b8;
       box-shadow: 0 0 30px rgba(138, 125, 158, 0.3), inset 0 2px 0 rgba(255,255,255,0.15);
     }
     #btnLojaOverlay:hover {
-      box-shadow: 0 0 50px rgba(138, 125, 158, 0.5); /* Aumenta o brilho ao passar o mouse */
+      box-shadow: 0 0 50px rgba(138, 125, 158, 0.5);
     }
     /* BOTÃO DO FIM DE JOGO */
     #btnEncerrarOverlay {
@@ -339,109 +373,86 @@
       75% { opacity: 1; transform: translateX(-50%) scale(1); }
       100% { opacity: 0; transform: translateX(-50%) scale(1.2) translateY(-30px); }
     }
-    @media (max-width: 860px) {
-      .sim-container { padding: 1rem; }
-      canvas { width: 100%; height: auto; aspect-ratio: 800/500; }
-      .painel { flex-direction: column; align-items: stretch; gap: 0.8rem; }
-      .info-grid { justify-content: space-around; }
-      #btnIniciarOverlay {
-        font-size: 20px;
-        padding: 12px 30px;
-        top: 50%;
-      }
-      #btnLojaOverlay {
-        font-size: 16px;
-        padding: 10px 25px;
-        top: 66%;
-      }
-      #btnEncerrarOverlay {
-        font-size: 18px;
-        padding: 12px 25px;
-        top: 56%;
-      }
-      .modal-content { padding: 25px 20px; }
-      .upgrade-item { flex-direction: column; gap: 10px; align-items: stretch; }
-      .btn-upgrade { width: 100%; }
-      .reward-notification {
-        font-size: 20px;
-        padding: 15px 25px;
-        top: 15%;
-      }
-    }
   </style>
 </head>
 <body>
-<div class="sim-container">
-  <div class="container-relative">
-    <canvas id="spaceCanvas" width="800" height="500"></canvas>
-    
-    <button id="btnIniciarOverlay" class="btn-overlay" style="display:none;">INICIAR</button>
-    <button id="btnLojaOverlay" class="btn-overlay" style="display:none;">LOJA</button>
-    
-    <!-- BOTÃO DE ENCERRAR (APARECE APENAS NA CAMADA 10) -->
-    <button id="btnEncerrarOverlay" class="btn-overlay">🏁 ENCERRAR</button>
+  <!-- Tela de Abertura (Splash Screen) -->
+  <div id="splashScreen" class="splash-screen">
+    <img src="assets/Hlstudio.png" alt="HL Studio" class="splash-logo">
   </div>
 
-  <div class="painel">
-    <div class="info-grid">
-      <div class="info-item"><span>Altura</span><span id="alturaDisplay">0.0</span></div>
-      <div class="info-item"><span>Comb.</span>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span id="combustivelDisplay">100</span>
-          <div class="combustivel-barra"><div class="combustivel-preenchido" id="combustivelBarra" style="width: 100%;"></div></div>
+  <div class="sim-container">
+    <div class="container-relative">
+      <canvas id="spaceCanvas" width="800" height="500"></canvas>
+      
+      <button id="btnIniciarOverlay" class="btn-overlay" style="display:none;">INICIAR</button>
+      <button id="btnLojaOverlay" class="btn-overlay" style="display:none;">LOJA</button>
+      
+      <!-- BOTÃO DE ENCERRAR (APARECE APENAS NA CAMADA 10) -->
+      <button id="btnEncerrarOverlay" class="btn-overlay">🏁 ENCERRAR</button>
+    </div>
+
+    <div class="painel">
+      <div class="info-grid">
+        <div class="info-item"><span>Altura</span><span id="alturaDisplay">0.0</span></div>
+        <div class="info-item"><span>Comb.</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="combustivelDisplay">100</span>
+            <div class="combustivel-barra"><div class="combustivel-preenchido" id="combustivelBarra" style="width: 100%;"></div></div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="legenda">
-    <span><kbd>Espaço</kbd> ligar/desligar motor</span>
-    <span><kbd>R</kbd> reiniciar</span>
-    <span>⬆️ subir com motor ligado</span>
-    <span> Recompensa por camada: +10, +20, +30...</span>
-  </div>
-</div>
-
-<!-- Modal da Loja -->
-<div class="modal-loja" id="modalLoja">
-  <div class="modal-content">
-    <h2>🛒 UPGRADES</h2>
-    <div class="moedas">🪙 Moedas: <span id="moedasDisplay">0</span></div>
-    
-    <div class="upgrade-item">
-      <div class="upgrade-info">
-        <div class="nome">⚡ Velocidade Máxima</div>
-        <div class="desc">+10 km/h por nível</div>
-        <div class="preco">💰 <span id="precoVelocidade">10</span> moedas</div>
-        <div class="limite">Nível: <span id="nivelVelocidade">0</span> | Atual: <span id="velocAtual">190</span> km/h</div>
-      </div>
-      <button class="btn-upgrade" id="btnUpgradeVelocidade">COMPRAR</button>
+    <div class="legenda">
+      <span><kbd>Espaço</kbd> ligar/desligar motor</span>
+      <span><kbd>R</kbd> reiniciar</span>
+      <span>⬆️ subir com motor ligado</span>
+      <span> Recompensa por camada: +10, +20, +30...</span>
     </div>
-
-    <div class="upgrade-item">
-      <div class="upgrade-info">
-        <div class="nome">⏱️ Duração do Combustível</div>
-        <div class="desc">+1 segundo por nível (máx. 10)</div>
-        <div class="preco">💰 <span id="precoDuracao">20</span> moedas</div>
-        <div class="limite">Nível: <span id="nivelDuracao">0</span>/10 | Atual: <span id="duracaoAtual">5</span>s</div>
-      </div>
-      <button class="btn-upgrade" id="btnUpgradeDuracao">COMPRAR</button>
-    </div>
-
-    <button class="btn-fechar-loja" id="btnFecharLoja">✕ FECHAR</button>
   </div>
-</div>
 
-<!-- Carregue as classes externas -->
-<script src="nave.js"></script>
-<script src="Ambient.js"></script>
-<script src="somSistema.js"></script>
-<script src="somRecompensa.js"></script>
-<script src="somLoja.js"></script>
-<script src="somAlerta.js"></script>
-<script src="reboot.js"></script>
+  <!-- Modal da Loja -->
+  <div class="modal-loja" id="modalLoja">
+    <div class="modal-content">
+      <h2>🛒 UPGRADES</h2>
+      <div class="moedas">🪙 Moedas: <span id="moedasDisplay">0</span></div>
+      
+      <div class="upgrade-item">
+        <div class="upgrade-info">
+          <div class="nome">⚡ Velocidade Máxima</div>
+          <div class="desc">+10 km/h por nível</div>
+          <div class="preco">💰 <span id="precoVelocidade">10</span> moedas</div>
+          <div class="limite">Nível: <span id="nivelVelocidade">0</span> | Atual: <span id="velocAtual">190</span> km/h</div>
+        </div>
+        <button class="btn-upgrade" id="btnUpgradeVelocidade">COMPRAR</button>
+      </div>
 
-<!-- Script Principal Corrigido (Início no nível 0) -->
-<script>
+      <div class="upgrade-item">
+        <div class="upgrade-info">
+          <div class="nome">⏱️ Duração do Combustível</div>
+          <div class="desc">+1 segundo por nível (máx. 10)</div>
+          <div class="preco">💰 <span id="precoDuracao">20</span> moedas</div>
+          <div class="limite">Nível: <span id="nivelDuracao">0</span>/10 | Atual: <span id="duracaoAtual">5</span>s</div>
+        </div>
+        <button class="btn-upgrade" id="btnUpgradeDuracao">COMPRAR</button>
+      </div>
+
+      <button class="btn-fechar-loja" id="btnFecharLoja">✕ FECHAR</button>
+    </div>
+  </div>
+
+  <!-- Carregue as classes externas -->
+  <script src="nave.js"></script>
+  <script src="Ambient.js"></script>
+  <script src="somSistema.js"></script>
+  <script src="somRecompensa.js"></script>
+  <script src="somLoja.js"></script>
+  <script src="somAlerta.js"></script>
+  <script src="reboot.js"></script>
+  <script src="Splashscreen.js"></script>
+
+  <!-- Script Principal (FINAL) -->
+  <script>
   (function() {
     // --- Elementos ---
     const canvas = document.getElementById('spaceCanvas');
@@ -468,6 +479,15 @@
     const somMotor = new Audio('assets/motor.mp3');
     somMotor.loop = true;
     somMotor.volume = 0.3;
+
+    // MÚSICA DE FUNDO
+    const musicaFundo = new Audio('assets/musica_fundo.mp3');
+    musicaFundo.loop = true;
+    musicaFundo.volume = 0.25;
+
+    // Som da Splash Screen (toca no reset)
+    const somSplash = new Audio('assets/Splash.mp3');
+    somSplash.volume = 0.7;
 
     const somSistema = new SomSistema();
     const somRecompensa = new SomRecompensa();
@@ -568,7 +588,6 @@
         mostrarNotificacaoRecompensa(recompensa, camadaAtual);
         atualizarInterfaceLoja();
 
-        // VERIFICA SE O JOGADOR CHEGOU NA CAMADA 10 (ÍNDICE 9)
         if (camadaAtual === 9) {
             finalizarJogo();
         }
@@ -595,24 +614,27 @@
       }, 2500);
     }
 
-    // --- Função para Finalizar o Jogo ---
     function finalizarJogo() {
         state.jogoFinalizado = true;
         state.motorLigado = false;
         
-        // Para todos os sons
         somMotor.pause();
         somAlerta.desligar();
+        musicaFundo.pause(); 
         
-        // Mostra a tela escura e o botão Encerrar
         btnEncerrar.style.display = 'block';
     }
 
-    // --- Funções auxiliares ---
     function resetarSimulador() {
-      reboot.tocar();
+      // Toca o som da splash ao reiniciar
+      somSplash.currentTime = 0;
+      somSplash.play().catch(e => {});
 
-      // REMOVI O "430*9" DAQUI. O JOGO AGORA COMEÇA DO ZERO NO CHÃO
+      reboot.tocar();
+      
+      musicaFundo.currentTime = 0;
+      musicaFundo.play().catch(e => {});
+
       state.alturaMundo = 0;
       state.velocidade = 0;
       state.combustivel = CONFIG.combustivelMaximo;
@@ -628,7 +650,6 @@
       state.jogoIniciado = false;
       state.jogoFinalizado = false; 
       
-      // Esconde o botão de encerrar
       btnEncerrar.style.display = 'none';
       
       state.velocidadeMaxima = CONFIG.velocidadeBase + (player.nivelVelocidade * 10);
@@ -646,6 +667,9 @@
 
     function iniciarJogo() {
       somSistema.tocarClique();
+      
+      musicaFundo.currentTime = 0;
+      musicaFundo.play().catch(e => {});
 
       state.jogoIniciado = true;
       btnIniciar.style.display = 'none';
@@ -685,7 +709,6 @@
       }
     }
 
-    // --- Lógica da camada e do chão ---
     function atualizarCamadaEChao() {
       if (state.jogoFinalizado) return; 
 
@@ -708,7 +731,6 @@
       }
     }
 
-    // --- Física ---
     function stepPhysics(deltaSec) {
       if (state.jogoFinalizado) return; 
 
@@ -725,13 +747,15 @@
         aceleracao += CONFIG.empuxo;
         const consumoTotal = consumoPorSegundo * deltaSec;
         state.combustivel = Math.max(0, state.combustivel - consumoTotal);
-        if (state.combustivel <= 0) {
+        
+        if (state.combustivel <= 0 && state.motorLigado) {
           state.combustivel = 0;
           state.motorLigado = false;
           
           somMotor.pause();
           somMotor.currentTime = 0;
-          somAlerta.ligar();
+          
+          somAlerta.ligar(); 
         }
       }
 
@@ -769,7 +793,6 @@
       atualizarDisplay();
     }
 
-    // --- Posição da nave na tela ---
     function getNaveY() {
       const mundoVisivel = ALTURA_MAX_TELA;
       let relY = state.alturaMundo % mundoVisivel;
@@ -777,31 +800,24 @@
       return naveY;
     }
 
-    // --- Desenho da cena ---
     function desenharCena() {
       ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
 
-      // 1. Fundo Espacial
       ambiente.desenhar(ctx, CANVAS_W, CANVAS_H, state.offsetY);
 
-      // 2. Desenho do Chão
       if (state.chaoVisivel) {
         if (chaoCarregado) {
-            const larguraChao = 800; 
-            const alturaChao = 140; 
-            ctx.drawImage(chaoLua, 0, SOLO_Y - 70, larguraChao, alturaChao);
+            ctx.drawImage(chaoLua, 0, SOLO_Y - 70, 800, 140);
         } else {
             ctx.fillStyle = '#192433';
             ctx.fillRect(0, SOLO_Y, CANVAS_W, 70);
         }
       }
 
-      // 3. Desenho da Nave
       const naveX = 400;
       const naveY = getNaveY();
       minhaNave.desenhar(ctx, naveX, naveY, state.motorLigado, state.combustivel);
 
-      // 4. HUD
       if (state.jogoIniciado && !state.jogoFinalizado) {
         ctx.font = 'bold 12px "Segoe UI", monospace';
         ctx.fillStyle = state.motorLigado && state.combustivel > 0 ? '#b3ff9b' : '#ff8a8a';
@@ -838,7 +854,6 @@
         }
       }
 
-      // 5. Overlay de Fim de Jogo
       if (state.jogoFinalizado) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.75)'; 
         ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
@@ -861,7 +876,6 @@
         ctx.textAlign = 'left';
       }
 
-      // 6. Menu (Sobreposição)
       if (!state.jogoIniciado) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
         ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
@@ -896,7 +910,6 @@
       }
     }
 
-    // --- Loop principal ---
     function loop(timestamp) {
       if (!ultimoTimestamp) ultimoTimestamp = timestamp;
       const deltaMs = timestamp - ultimoTimestamp;
@@ -914,7 +927,6 @@
       animFrameId = requestAnimationFrame(loop);
     }
 
-    // --- Controles ---
     function toggleMotor() {
       if (!state.jogoIniciado || state.jogoFinalizado) return;
       
@@ -935,7 +947,6 @@
       }
     }
 
-    // --- Funções da Loja ---
     function comprarVelocidade() {
       const preco = player.precoBaseVelocidade + (player.nivelVelocidade * 2);
       if (player.moedas >= preco) {
@@ -968,15 +979,20 @@
       if (state.jogoFinalizado) return;
       somSistema.tocarClique();
 
+      musicaFundo.pause();
+
       modalLoja.classList.add('active');
       atualizarInterfaceLoja();
     }
 
     function fecharLoja() {
       modalLoja.classList.remove('active');
+      
+      if (state.jogoIniciado && !state.jogoFinalizado) {
+        musicaFundo.play().catch(e => {});
+      }
     }
 
-    // --- Event Listeners ---
     document.addEventListener('keydown', (e) => {
       if (e.key === ' ' || e.key === 'Space') {
         e.preventDefault();
@@ -993,7 +1009,7 @@
 
     btnIniciar.addEventListener('click', iniciarJogo);
     btnLoja.addEventListener('click', abrirLoja);
-    btnEncerrar.addEventListener('click', resetarSimulador); // Encerrar volta para o Menu
+    btnEncerrar.addEventListener('click', resetarSimulador);
     btnFecharLoja.addEventListener('click', fecharLoja);
     btnUpgradeVelocidade.addEventListener('click', comprarVelocidade);
     btnUpgradeDuracao.addEventListener('click', comprarDuracao);
@@ -1002,12 +1018,11 @@
       if (e.target === modalLoja) fecharLoja();
     });
 
-    // --- Inicialização ---
     resetarSimulador();
     if (animFrameId) cancelAnimationFrame(animFrameId);
     ultimoTimestamp = 0;
     animFrameId = requestAnimationFrame(loop);
   })();
-</script>
+  </script>
 </body>
 </html>

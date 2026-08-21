@@ -6,6 +6,7 @@ class SomAlerta {
         this.audio = new Audio('assets/Alerta.mp3');
         this.audio.loop = true;      // Toca em loop contínuo
         this.audio.volume = 0.5;     // Volume médio para chamar a atenção
+        this.tocando = false;        // <--- CONTROLE PARA NÃO TOCAR DUAS VEZES
         
         // Pré-carrega o som
         this.audio.load();
@@ -13,6 +14,10 @@ class SomAlerta {
 
     // Inicia o alarme (toca em loop)
     ligar() {
+        // Se já está tocando, não faz nada (evita duplicidade)
+        if (this.tocando) return; 
+        
+        this.tocando = true;
         this.audio.currentTime = 0; // Começa do início
         this.audio.play().catch(e => {
             // Ignora erros caso o som já esteja tocando ou interação pendente
@@ -21,6 +26,7 @@ class SomAlerta {
 
     // Para o alarme imediatamente (corte seco)
     desligar() {
+        this.tocando = false;       // <--- Libera para tocar novamente no futuro
         this.audio.pause();
         this.audio.currentTime = 0; // Reseta para o início para o próximo toque
     }

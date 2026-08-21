@@ -6,8 +6,8 @@ class MenuUI {
         // Lista de imagens que serão carregadas da pasta assets/modelos
         this.assets = {
             titulo: 'assets/modelos/titulo.png',
-            play: 'assets/modelos/play.png',
-            loja: 'assets/modelos/loja.png'
+            play: 'assets/modelos/butiniciar.png', // Botão Iniciar (PNG)
+            loja: 'assets/modelos/butloja.png'      // Botão Loja (PNG)
         };
 
         // Armazena as imagens carregadas
@@ -57,28 +57,34 @@ class MenuUI {
         if (this.imagens.titulo) {
             const titulo = this.imagens.titulo;
             const tituloLargura = 500;
-            const tituloAltura = 80; // Ajuste a altura conforme a proporção da sua imagem
+            const tituloAltura = 80; 
             ctx.drawImage(titulo, (canvasW - tituloLargura) / 2, 80, tituloLargura, tituloAltura);
         }
 
-        // 2. Desenhar Botão Play (centro)
+        // 2. Desenhar Botão Iniciar (centro)
         if (this.imagens.play) {
             const play = this.imagens.play;
-            // Tamanho do botão
-            this.btnPlay.w = 200;
-            this.btnPlay.h = 70;
+            
+            // Calcula o tamanho baseado na proporção da imagem
+            const proporcao = play.naturalWidth / play.naturalHeight;
+            this.btnPlay.w = 250;  // Largura desejada
+            this.btnPlay.h = this.btnPlay.w / proporcao; // Altura proporcional
+            
             this.btnPlay.x = (canvasW - this.btnPlay.w) / 2;
-            this.btnPlay.y = 260; // Posição Y
+            this.btnPlay.y = 240; // Posição Y
 
             ctx.drawImage(play, this.btnPlay.x, this.btnPlay.y, this.btnPlay.w, this.btnPlay.h);
         }
 
-        // 3. Desenhar Botão Loja (abaixo do Play)
+        // 3. Desenhar Botão Loja (abaixo do Iniciar)
         if (this.imagens.loja) {
             const loja = this.imagens.loja;
-            // Tamanho do botão
-            this.btnLoja.w = 160;
-            this.btnLoja.h = 60;
+            
+            // Calcula o tamanho baseado na proporção da imagem
+            const proporcao = loja.naturalWidth / loja.naturalHeight;
+            this.btnLoja.w = 200;  // Largura desejada
+            this.btnLoja.h = this.btnLoja.w / proporcao; // Altura proporcional
+            
             this.btnLoja.x = (canvasW - this.btnLoja.w) / 2;
             this.btnLoja.y = 350; // Posição Y
 
@@ -86,7 +92,7 @@ class MenuUI {
         }
     }
 
-    // Método para verificar se o jogador clicou no botão Play
+    // Método para verificar se o jogador clicou no botão Iniciar
     clicouPlay(mouseX, mouseY) {
         return this.verificarClique(this.btnPlay, mouseX, mouseY);
     }
